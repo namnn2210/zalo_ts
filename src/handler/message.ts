@@ -17,7 +17,10 @@ export async function handleMessage(
     console.log(content, msgType, uidFrom, dName, threadId, threadType)
 
     const target = targetList[threadId];
-    if (!target || (target.from && target.from !== uidFrom)) {
+
+    if (!target) return;
+
+    if (target.from !== "" && target.from !== uidFrom) {
         console.log(`❌ Bỏ qua tin nhắn từ ${dName} (${uidFrom} do target là ${target.from})`);
         return;
     }
