@@ -12,18 +12,18 @@ import { handleMessage } from "./handler/message.js";
     );
 
     for (const { api, targetList } of bots) {
-        console.log(await api.getAllGroups());
-        console.log(await api.getGroupInfo("2532685792790035945"))
+        // console.log(await api.getAllGroups());
+        // console.log(await api.getGroupInfo("2532685792790035945"))
         // api.listener.on("message", (message) => {
         //     handleMessage(api, targetList, message);
         // });
         // api.listener.start();
 
-        // api.listener.on("message", (message) => {
-        //     handleMessage(api, targetList, message);
-        // });
+        api.listener.on("message", (message) => {
+            handleMessage(api, targetList, message);
+        });
 
-        // api.listener.start();
+        api.listener.start();
     }
 
     console.log("✅ Tất cả bot đã được khởi động.");
