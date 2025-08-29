@@ -4,6 +4,9 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { TargetMap } from "../types";
 import { API, ThreadType } from "zca-js";
+import mime from "mime-types";
+import { promisify } from "util";
+const unlinkAsync = promisify(fs.unlink);
 
 export async function handleMessage(
     api: API,
@@ -35,22 +38,52 @@ export async function handleMessage(
 }
 
 async function sendImage(api: API, url: string, threadId: string, threadType: ThreadType) {
-    const fileName = `${uuidv4()}.jpg`;
-    const uploadDir = path.resolve("upload");
-    const filePath = path.join(uploadDir, fileName);
+  const uploadDir = path.resolve("upload");
+  fs.mkdirSync(uploadDir, { recursive: true });
 
-    fs.mkdirSync(uploadDir, { recursive: true });
+  // 1) Tải ảnh an toàn
+  const res = await axios.get(url, {
+    responseType: "arraybuffer",
+    timeout: 15000,
+    // Một số CDN cần UA hoặc Referrer, bật nếu cần:
+    headers: {
+      "User-Agent": "Mozilla/5.0",
+      // "Referer": "https://your-app.example", // nếu server yêu cầu
+      // "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
+    },
+    // Chặn 30x lạ -> axios tự follow redirect; vẫn nên validate status thủ công
+    validateStatus: (s) => s >= 200 && s < 400,
+  });
 
-    const response = await axios.get(url, { responseType: "arraybuffer" });
+  const ctype = (res.headers["content-type"] || "").split(";")[0].trim();
+  if (!ctype.startsWith("image/")) {
+    throw new Error(`URL không trả về ảnh. content-type: ${ctype || "unknown"}`);
+  }
 
-    fs.writeFileSync(filePath, response.data);
+  const buffer = Buffer.from(res.data);
+  if (!buffer.length) {
+    throw new Error("Ảnh tải về rỗng (0 bytes).");
+  }
 
-    await api.sendMessage({
+  // 2) Đặt phần mở rộng theo MIME
+  const ext = mime.extension(ctype) || "jpg";
+  const fileName = `${uuidv4()}.${ext}`;
+  const filePath = path.join(uploadDir, fileName);
+
+  fs.writeFileSync(filePath, buffer); // đảm bảo ghi Buffer chứ không phải ArrayBuffer
+
+  try {
+    // 3) Gửi và dọn dẹp
+    await api.sendMessage(
+      {
         msg: "",
         attachments: [filePath],
-    }, threadId, threadType);
-
-    fs.unlink(filePath, (err) => {
-        if (err) console.error("Lỗi xóa ảnh:", err.message);
-    });
+      },
+      threadId,
+      threadType
+    );
+  } finally {
+    // xóa file tạm (không chờ)
+    unlinkAsync(filePath).catch((err) => console.error("Lỗi xóa ảnh:", err.message));
+  }
 }
