@@ -157,6 +157,7 @@ async function downloadImageToFile(url: string): Promise<{ filePath: string; con
 
 export async function sendImage(
   api: API,
+  imageContent: string,
   url: string,
   threadId: string,
   threadType: ThreadType
@@ -165,7 +166,7 @@ export async function sendImage(
   try {
     const { filePath: p } = await downloadImageToFile(url);
     filePath = p;
-    await api.sendMessage({ msg: "", attachments: [filePath] }, threadId, threadType);
+    await api.sendMessage({ msg: imageContent, attachments: [filePath] }, threadId, threadType);
   } finally {
     if (filePath) {
       fsp.unlink(filePath).catch((e) => console.error("Lỗi xóa ảnh tạm:", e.message));
@@ -198,7 +199,7 @@ export async function handleMessage(
       await api.sendMessage(content, targetId, threadType);
     } else if (msgType === "chat.photo" && content.href) {
       try {
-        await sendImage(api, content.href, targetId, threadType);
+        await sendImage(api, content.title, content.href, targetId, threadType);
       } catch (err: any) {
         console.error("sendImage failed:", content.href, err?.message || err);
       }
