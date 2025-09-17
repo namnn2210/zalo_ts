@@ -3,8 +3,8 @@ import { AccountConfig } from "../types";
 const nguyenhai: AccountConfig = {
     name: "Nguyễn Hải",
     cookieFile: "nguyenhai.json",
-    imei: "db94f411-79bc-4ba8-aded-0bfbf3d5fe65-ce69b851c4edc7eebfb3998aa94a7157",
-    ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    imei: "b7ffb94e-8469-4d1a-b72b-395bbe5b9a3f-ce69b851c4edc7eebfb3998aa94a7157",
+    ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
     targetList: {
         // Lão hạc Trading 4
         '5598458251966059144': {

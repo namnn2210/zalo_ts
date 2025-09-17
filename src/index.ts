@@ -10,21 +10,36 @@ import { handleMessage } from "./handler/message.js";
             return { api, targetList };
         })
     );
-
     for (const { api, targetList } of bots) {
-        // console.log(await api.getAllGroups());
-        // console.log(await api.getGroupInfo("2532685792790035945"))
-        // api.listener.on("message", (message) => {
-        //     handleMessage(api, targetList, message);
-        // });
-        // api.listener.start();
+        const groups = await api.getAllGroups();
 
-        api.listener.on("message", (message) => {
-            handleMessage(api, targetList, message);
-        });
+        let result = [];
+        for (const groupId of Object.keys(groups.gridVerMap)) {
+            const groupData = await api.getGroupInfo(groupId);
 
-        api.listener.start();
+            // lấy ra phần gridInfoMap (có thể chứa nhiều nhóm, nhưng thường là 1)
+            const infos = Object.values(groupData.gridInfoMap);
+            for (const info of infos) {
+                result.push({
+                    id: info.groupId,
+                    name: info.name
+                });
+            }
+        }
+
+        console.log(result);
     }
+
+    
+
+
+
+    // for (const { api, targetList } of bots) {
+    //     api.listener.on("message", (message) => {
+    //         handleMessage(api, targetList, message);
+    //     });
+    //     api.listener.start();
+    // }
 
     console.log("✅ Tất cả bot đã được khởi động.");
 })();
